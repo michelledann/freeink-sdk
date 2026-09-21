@@ -79,6 +79,13 @@ class Ssd1677Driver : public PanelDriver {
   void grayscaleRevert(EpdBus& bus, const uint8_t* fb) override;
   void setCustomLut(EpdBus& bus, bool enabled, const unsigned char* data) override;
 
+  // See PanelDriver::setWarmWake. Must be called before begin(): initController()
+  // reads it to decide whether to run the AUTO_WRITE_BW_RAM/AUTO_WRITE_RED_RAM
+  // clear (which would blank the panel's real prior content, the RED plane in
+  // particular, right before a Fast/differential refresh needs to read it) and
+  // whether to arm the one-shot forced full refresh.
+  void setWarmWake(bool warm) override;
+
  private:
   void initController(EpdBus& bus);
   void setRamArea(EpdBus& bus, uint16_t x, uint16_t y, uint16_t w, uint16_t h);
@@ -105,6 +112,8 @@ class Ssd1677Driver : public PanelDriver {
   // a clean differential baseline. Only armed for boards whose self-powering fast
   // sequence makes _isScreenOn useless as a cold-start signal (fullSeqOverride set).
   bool _needsInitialFull = false;
+  // Set via setWarmWake() before begin(). See that method's declaration above.
+  bool _warmWake = false;
 };
 
 // Singleton accessor (Meyers, zero-heap). Selects the config for the active board.

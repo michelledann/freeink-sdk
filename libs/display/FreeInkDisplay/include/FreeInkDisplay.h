@@ -34,6 +34,14 @@ class FreeInkDisplay {
   void setDisplayX3();
   void setDisplayM5PaperColor();
 
+  // Call before begin(). Hints that this begin() is a warm wake (panel stayed
+  // powered the whole time, e.g. an ESP32 deep-sleep timer wakeup) rather than
+  // a genuine cold boot, so a controller that would otherwise reset/clear its
+  // RAM or force a full refresh on every begin() can skip that and preserve
+  // the panel's real content for a differential (fast) refresh. See
+  // PanelDriver::setWarmWake. No-op on drivers that don't support it.
+  void setWarmWake(bool warm);
+
   // M5 PaperColor: run the next refresh's OTP waveform to completion (one-shot).
   void requestCompleteWaveformNextRefresh();
 
@@ -182,6 +190,10 @@ class FreeInkDisplay {
 
   enum class PanelSel : uint8_t { X4, X3, M5 };
   PanelSel _panelSel = PanelSel::X4;
+
+  // Set by setWarmWake() before _driver exists; applied to the driver in
+  // begin() right after selectDriver() assigns it, before _driver->begin().
+  bool _warmWakeHint = false;
 
   // Runtime display geometry (seeded from the driver at begin()).
   uint16_t displayWidth = DISPLAY_WIDTH;

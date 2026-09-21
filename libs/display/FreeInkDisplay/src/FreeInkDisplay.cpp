@@ -121,8 +121,11 @@ void FreeInkDisplay::selectDriver() {
   }
 }
 
+void FreeInkDisplay::setWarmWake(bool warm) { _warmWakeHint = warm; }
+
 void FreeInkDisplay::begin() {
   selectDriver();
+  _driver->setWarmWake(_warmWakeHint);
 
   // External-library drivers (e.g. M5GFX) own the SPI/display hardware; only
   // bring up FreeInk's bus for native controller drivers.

@@ -144,22 +144,35 @@ void Ssd1677Driver::initController(EpdBus& bus) {
   bus.cmd(CMD_BORDER_WAVEFORM);
   bus.data(_cfg.borderWaveformInit);
 
-  setRamArea(bus, 0, 0, _w, _h);
+  // AUTO_WRITE_BW_RAM/AUTO_WRITE_RED_RAM fill both RAM planes with a fixed
+  // pattern -- necessary on a genuine cold boot (RAM contents undefined), but
+  // on a caller-confirmed warm wake (setWarmWake(true), panel stayed powered
+  // the whole time) this would blank the RED plane's real prior frame right
+  // before a Fast/differential refresh needs to read it as the diff baseline
+  // -- exactly what was producing "new ink added, old ink never clears"
+  // ghosting. Skip it on a warm wake and trust the panel's actual RAM state.
+  if (!_warmWake) {
+    setRamArea(bus, 0, 0, _w, _h);
 
-  bus.cmd(CMD_AUTO_WRITE_BW_RAM);
-  bus.data(0xF7);
-  bus.waitBusy(" CMD_AUTO_WRITE_BW_RAM");
+    bus.cmd(CMD_AUTO_WRITE_BW_RAM);
+    bus.data(0xF7);
+    bus.waitBusy(" CMD_AUTO_WRITE_BW_RAM");
 
-  bus.cmd(CMD_AUTO_WRITE_RED_RAM);
-  bus.data(0xF7);
-  bus.waitBusy(" CMD_AUTO_WRITE_RED_RAM");
+    bus.cmd(CMD_AUTO_WRITE_RED_RAM);
+    bus.data(0xF7);
+    bus.waitBusy(" CMD_AUTO_WRITE_RED_RAM");
+  }
 
   _isScreenOn = false;
   // Override boards can't use _isScreenOn to detect a cold start (their fast
   // sequence powers down after every page), so arm an explicit one-shot full
   // refresh for the first paint — it clears the boot screen and seeds the baseline.
-  _needsInitialFull = (_cfg.fullSeqOverride != 0);
+  // Skipped on a confirmed warm wake, where the panel's real content is intact
+  // and a full refresh isn't needed to establish a clean baseline.
+  _needsInitialFull = !_warmWake && (_cfg.fullSeqOverride != 0);
 }
+
+void Ssd1677Driver::setWarmWake(bool warm) { _warmWake = warm; }
 
 void Ssd1677Driver::setRamArea(EpdBus& bus, uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
   // Data-entry bit0 = X direction (1=increment, 0=decrement); bit1 = Y (0=dec).

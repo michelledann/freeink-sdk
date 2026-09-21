@@ -90,6 +90,13 @@ class PanelDriver {
   virtual void requestResync(uint8_t settlePasses) { (void)settlePasses; }
   virtual void skipInitialResync() {}
   virtual void requestCompleteWaveformNextRefresh() {}
+  // Caller-confirmed hint: this begin() is a warm wake (e.g. an ESP32
+  // deep-sleep timer wakeup) where the panel stayed powered the whole time,
+  // not a genuine cold boot. Controllers whose init sequence would otherwise
+  // unconditionally clear/reset RAM or force a full refresh can use this to
+  // skip that and preserve the panel's real prior content for a differential
+  // (fast) refresh. Call before begin(). No-op by default.
+  virtual void setWarmWake(bool warm) { (void)warm; }
   // Interrupted-refresh cutoff tuning (ED2208: where the gate scan freezes).
   virtual void setFastRefreshCutoffMs(uint16_t ms) { (void)ms; }
   virtual uint16_t fastRefreshCutoffMs() const { return 0; }
