@@ -16,10 +16,15 @@ void EpdBus::begin(const EpdPins& pins, uint32_t spiHz, BusyPolarity busy, int8_
   // gpio_hold_dis first: PowerManager::powerDownRailsForSleep() holds this pin LOW
   // for deep sleep, and the hold survives the wake reset — without releasing it,
   // the HIGH write silently bounces off the latch and the rail stays off.
+  // Order matters: set the output level HIGH before releasing the hold, so a
+  // rail an app held ON through deep sleep never dips when the hold lets go.
+  // gpio_set_level, not digitalWrite: the Arduino core ignores digitalWrite on
+  // a pin that pinMode hasn't claimed yet.
   if (pins.powerEnable >= 0) {
-    gpio_hold_dis(static_cast<gpio_num_t>(pins.powerEnable));
+    gpio_set_level(static_cast<gpio_num_t>(pins.powerEnable), 1);
     pinMode(pins.powerEnable, OUTPUT);
     digitalWrite(pins.powerEnable, HIGH);
+    gpio_hold_dis(static_cast<gpio_num_t>(pins.powerEnable));
     delay(100);
   }
 
@@ -27,7 +32,16 @@ void EpdBus::begin(const EpdPins& pins, uint32_t spiHz, BusyPolarity busy, int8_
 
   pinMode(pins.cs, OUTPUT);
   pinMode(pins.dc, OUTPUT);
-  pinMode(pins.rst, OUTPUT);
+  // RST idles HIGH. Setting it HIGH before it becomes an output avoids the
+  // LOW that pinMode alone would drive -- itself a reset pulse -- so a warm
+  // wake that skips reset() (see Ssd1677Driver::begin) really leaves the
+  // controller un-reset. Then release any hold an app left on it for sleep.
+  if (pins.rst >= 0) {
+    gpio_set_level(static_cast<gpio_num_t>(pins.rst), 1);
+    pinMode(pins.rst, OUTPUT);
+    digitalWrite(pins.rst, HIGH);
+    gpio_hold_dis(static_cast<gpio_num_t>(pins.rst));
+  }
   pinMode(pins.busy, busy == BusyPolarity::ActiveLow ? INPUT_PULLUP : INPUT);
   if (_coCs >= 0) {
     pinMode(_coCs, OUTPUT);
