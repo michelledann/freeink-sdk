@@ -42,6 +42,14 @@ class FreeInkDisplay {
   // PanelDriver::setWarmWake. No-op on drivers that don't support it.
   void setWarmWake(bool warm);
 
+  // Call before begin(), alongside setWarmWake(true). True when the app also
+  // kept the panel's power (and RST) on through the sleep, so the controller's
+  // registers and RAM are intact: begin() then skips the power-up settle and
+  // the hardware/software resets. False (the default) when the panel lost
+  // power: begin() re-initialises the controller in full, and the app must
+  // supply the previous frame itself -- see displayBufferWithPrevious().
+  void setPanelPowerHeld(bool held);
+
   // M5 PaperColor: run the next refresh's OTP waveform to completion (one-shot).
   void requestCompleteWaveformNextRefresh();
 
@@ -109,6 +117,13 @@ class FreeInkDisplay {
 #endif
 
   void displayBuffer(RefreshMode mode = FAST_REFRESH, bool turnOffScreen = false);
+  // Like displayBuffer(), but with the previous frame supplied explicitly: a
+  // FAST refresh writes it to the controller's "old" RAM as the differential
+  // baseline instead of trusting whatever the controller holds. For apps that
+  // power the panel down between refreshes (its RAM is lost) yet can
+  // reproduce exactly what's on the glass -- the Fast refresh is then as clean
+  // as back-to-back ones. prev must be a full frame in the framebuffer layout.
+  void displayBufferWithPrevious(const uint8_t* prev, RefreshMode mode = FAST_REFRESH, bool turnOffScreen = false);
   // EXPERIMENTAL: Windowed update - display only a rectangular region
   void displayWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool turnOffScreen = false);
   void displayGrayBuffer(bool turnOffScreen = false, const unsigned char* lut = nullptr, bool factoryMode = false);
@@ -194,6 +209,8 @@ class FreeInkDisplay {
   // Set by setWarmWake() before _driver exists; applied to the driver in
   // begin() right after selectDriver() assigns it, before _driver->begin().
   bool _warmWakeHint = false;
+  // Set by setPanelPowerHeld(); see there.
+  bool _panelPowerHeldHint = false;
 
   // Runtime display geometry (seeded from the driver at begin()).
   uint16_t displayWidth = DISPLAY_WIDTH;

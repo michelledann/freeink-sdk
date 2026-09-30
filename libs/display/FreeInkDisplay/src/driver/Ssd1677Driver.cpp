@@ -115,21 +115,20 @@ uint32_t Ssd1677Driver::spiHz() const {
 PanelGeometry Ssd1677Driver::geometry() const { return {_w, _h, _wb, _bufferSize}; }
 
 void Ssd1677Driver::begin(EpdBus& bus) {
-  // On a caller-confirmed warm wake (the app kept the panel's power and RST
-  // held through deep sleep), skip the hardware and software resets: the
-  // controller's registers and RAM are intact, and resetting cost RED RAM its
-  // latest update -- a Fast refresh then ghosted the previous frame. Verified
-  // on the Sticky: with the resets skipped, per-minute Fast refreshes after
-  // deep sleep are as clean as back-to-back ones. Only claim a warm wake when
-  // the rail really was held; otherwise RAM is undefined and needs the reset.
-  if (!_warmWake) bus.reset();
+  // The resets are skipped only when the app kept the panel powered, and RST
+  // high, through the sleep (setPanelPowerHeld): then the controller's
+  // registers and RAM are intact, and resetting was found to cost the RED
+  // plane its latest update -- the next Fast refresh ghosted the previous
+  // frame. If the panel lost power, RAM is gone anyway: reset and re-init in
+  // full, and rely on the caller supplying the previous frame to display().
+  if (!_powerHeld) bus.reset();
   initController(bus);
 }
 
 void Ssd1677Driver::initController(EpdBus& bus) {
   constexpr uint8_t TEMP_SENSOR_INTERNAL = 0x80;
 
-  if (!_warmWake) {  // see begin()
+  if (!_powerHeld) {  // see begin()
     bus.cmd(CMD_SOFT_RESET);
     bus.waitBusy(" CMD_SOFT_RESET");
   }
@@ -182,6 +181,7 @@ void Ssd1677Driver::initController(EpdBus& bus) {
 }
 
 void Ssd1677Driver::setWarmWake(bool warm) { _warmWake = warm; }
+void Ssd1677Driver::setPanelPowerHeld(bool held) { _powerHeld = held; }
 
 void Ssd1677Driver::setRamArea(EpdBus& bus, uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
   // Data-entry bit0 = X direction (1=increment, 0=decrement); bit1 = Y (0=dec).

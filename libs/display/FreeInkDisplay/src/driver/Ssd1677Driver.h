@@ -85,6 +85,7 @@ class Ssd1677Driver : public PanelDriver {
   // particular, right before a Fast/differential refresh needs to read it) and
   // whether to arm the one-shot forced full refresh.
   void setWarmWake(bool warm) override;
+  void setPanelPowerHeld(bool held) override;
 
  private:
   void initController(EpdBus& bus);
@@ -114,6 +115,8 @@ class Ssd1677Driver : public PanelDriver {
   bool _needsInitialFull = false;
   // Set via setWarmWake() before begin(). See that method's declaration above.
   bool _warmWake = false;
+  // Set via setPanelPowerHeld() before begin(): skip the resets only when true.
+  bool _powerHeld = false;
 };
 
 // Singleton accessor (Meyers, zero-heap). Selects the config for the active board.

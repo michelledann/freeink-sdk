@@ -97,6 +97,11 @@ class PanelDriver {
   // skip that and preserve the panel's real prior content for a differential
   // (fast) refresh. Call before begin(). No-op by default.
   virtual void setWarmWake(bool warm) { (void)warm; }
+  // Caller-confirmed hint, with setWarmWake(true): the panel's power stayed on
+  // through the sleep too, so registers and RAM are intact and the resets can
+  // be skipped. False: the panel lost power -- reset and re-init in full (RAM
+  // is undefined; the caller supplies the previous frame to display()).
+  virtual void setPanelPowerHeld(bool held) { (void)held; }
   // Interrupted-refresh cutoff tuning (ED2208: where the gate scan freezes).
   virtual void setFastRefreshCutoffMs(uint16_t ms) { (void)ms; }
   virtual uint16_t fastRefreshCutoffMs() const { return 0; }

@@ -122,10 +122,12 @@ void FreeInkDisplay::selectDriver() {
 }
 
 void FreeInkDisplay::setWarmWake(bool warm) { _warmWakeHint = warm; }
+void FreeInkDisplay::setPanelPowerHeld(bool held) { _panelPowerHeldHint = held; }
 
 void FreeInkDisplay::begin() {
   selectDriver();
   _driver->setWarmWake(_warmWakeHint);
+  _driver->setPanelPowerHeld(_panelPowerHeldHint);
 
   // External-library drivers (e.g. M5GFX) own the SPI/display hardware; only
   // bring up FreeInk's bus for native controller drivers.
@@ -137,8 +139,9 @@ void FreeInkDisplay::begin() {
     // here; a consumer no longer needs to know the panel's wiring.
     const auto& d = BoardConfig::ACTIVE.display;
     const EpdPins pins{d.sclk, d.mosi, d.cs, d.dc, d.rst, d.busy, d.powerEnable};
-    // A warm wake means the app held the rail on through sleep (see setWarmWake()).
-    _bus.begin(pins, _driver->spiHz(), _driver->busyPolarity(), _driver->spiMiso(), _driver->coCs(), _warmWakeHint);
+    // Only skip the power-up settle when the rail really stayed on (see setPanelPowerHeld()).
+    _bus.begin(pins, _driver->spiHz(), _driver->busyPolarity(), _driver->spiMiso(), _driver->coCs(),
+               _panelPowerHeldHint);
   }
 
   const PanelGeometry geom = _driver->geometry();
@@ -296,6 +299,10 @@ void FreeInkDisplay::displayBuffer(RefreshMode mode, bool turnOffScreen) {
   _driver->display(_bus, frameBuffer, frameBufferActive, toInternal(mode), turnOffScreen);
   swapBuffers();
 #endif
+}
+
+void FreeInkDisplay::displayBufferWithPrevious(const uint8_t* prev, RefreshMode mode, bool turnOffScreen) {
+  _driver->display(_bus, frameBuffer, prev, toInternal(mode), turnOffScreen);
 }
 
 void FreeInkDisplay::displayWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool turnOffScreen) {
