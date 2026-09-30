@@ -36,7 +36,10 @@ class EpdBus {
  public:
   // coCs: a co-resident chip-select (e.g. the SD card sharing the SPI bus on
   // M5 PaperColor) that must be held de-asserted during panel transactions.
-  void begin(const EpdPins& pins, uint32_t spiHz, BusyPolarity busy, int8_t spiMiso = -1, int8_t coCs = -1);
+  // railAlreadyOn: the power rail was held on through deep sleep (a warm
+  // wake), so the 100 ms power-up settle can be skipped.
+  void begin(const EpdPins& pins, uint32_t spiHz, BusyPolarity busy, int8_t spiMiso = -1, int8_t coCs = -1,
+             bool railAlreadyOn = false);
 
   // Hardware reset pulse; extraSettleMs adds a post-reset settle (X3 needs 50 ms).
   void reset(uint16_t extraSettleMs = 0);

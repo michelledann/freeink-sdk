@@ -137,7 +137,8 @@ void FreeInkDisplay::begin() {
     // here; a consumer no longer needs to know the panel's wiring.
     const auto& d = BoardConfig::ACTIVE.display;
     const EpdPins pins{d.sclk, d.mosi, d.cs, d.dc, d.rst, d.busy, d.powerEnable};
-    _bus.begin(pins, _driver->spiHz(), _driver->busyPolarity(), _driver->spiMiso(), _driver->coCs());
+    // A warm wake means the app held the rail on through sleep (see setWarmWake()).
+    _bus.begin(pins, _driver->spiHz(), _driver->busyPolarity(), _driver->spiMiso(), _driver->coCs(), _warmWakeHint);
   }
 
   const PanelGeometry geom = _driver->geometry();

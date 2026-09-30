@@ -4,7 +4,8 @@
 
 namespace freeink {
 
-void EpdBus::begin(const EpdPins& pins, uint32_t spiHz, BusyPolarity busy, int8_t spiMiso, int8_t coCs) {
+void EpdBus::begin(const EpdPins& pins, uint32_t spiHz, BusyPolarity busy, int8_t spiMiso, int8_t coCs,
+                   bool railAlreadyOn) {
   _pins = pins;
   _spiHz = spiHz;
   _busy = busy;
@@ -25,7 +26,7 @@ void EpdBus::begin(const EpdPins& pins, uint32_t spiHz, BusyPolarity busy, int8_
     pinMode(pins.powerEnable, OUTPUT);
     digitalWrite(pins.powerEnable, HIGH);
     gpio_hold_dis(static_cast<gpio_num_t>(pins.powerEnable));
-    delay(100);
+    if (!railAlreadyOn) delay(100);  // power-up settle; nothing to settle if it never went off
   }
 
   SPI.begin(pins.sclk, spiMiso, pins.mosi, pins.cs);
