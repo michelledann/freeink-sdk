@@ -107,6 +107,10 @@ class PanelDriver {
   virtual uint16_t fastRefreshCutoffMs() const { return 0; }
   virtual void grayscaleRevert(EpdBus& bus, const uint8_t* fb) { (void)bus; (void)fb; }
   virtual void setCustomLut(EpdBus& bus, bool enabled, const unsigned char* data) { (void)bus; (void)enabled; (void)data; }
+  // Like setCustomLut, but writes only the waveform (the controller's VS / TP / RP / frame-rate table) and leaves the
+  // gate, source and VCOM voltages as they are -- i.e. the panel's own OTP values from the last OTP-loading refresh.
+  // For an app-supplied quick-refresh waveform; the next FAST refresh uses it until disabled. No-op where unsupported.
+  virtual void setCustomWaveform(EpdBus& bus, bool enabled, const uint8_t* waveform) { (void)bus; (void)enabled; (void)waveform; }
 };
 
 }  // namespace freeink

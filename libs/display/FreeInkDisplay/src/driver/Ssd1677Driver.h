@@ -78,6 +78,7 @@ class Ssd1677Driver : public PanelDriver {
 
   void grayscaleRevert(EpdBus& bus, const uint8_t* fb) override;
   void setCustomLut(EpdBus& bus, bool enabled, const unsigned char* data) override;
+  void setCustomWaveform(EpdBus& bus, bool enabled, const uint8_t* waveform) override;
 
   // See PanelDriver::setWarmWake. Must be called before begin(): initController()
   // reads it to decide whether to run the AUTO_WRITE_BW_RAM/AUTO_WRITE_RED_RAM

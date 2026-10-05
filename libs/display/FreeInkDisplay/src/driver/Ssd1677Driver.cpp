@@ -515,6 +515,23 @@ void Ssd1677Driver::setCustomLut(EpdBus& bus, bool enabled, const unsigned char*
   _customLutActive = true;
 }
 
+// The waveform part only (105 bytes: VS for LUT0..4, TP/RP for groups 0..9, frame rate -- datasheet 6.7), the voltages
+// untouched. LUT index = 2 * RED bit + BW bit; in a FAST refresh RED holds the previous frame, so LUT0 = black stays black,
+// LUT1 = black to white, LUT2 = white to black, LUT3 = white stays white.
+void Ssd1677Driver::setCustomWaveform(EpdBus& bus, bool enabled, const uint8_t* waveform) {
+  if (!enabled || waveform == nullptr) {
+    _customLutActive = false;
+    return;
+  }
+  bus.cmd(CMD_WRITE_LUT);
+  bus.data(waveform, 105);
+  if (_cfg.borderWaveformGray != 0) {   // (as setCustomLut: hold the border at VCOM while a custom table is loaded)
+    bus.cmd(CMD_BORDER_WAVEFORM);
+    bus.data(_cfg.borderWaveformGray);
+  }
+  _customLutActive = true;
+}
+
 void Ssd1677Driver::deepSleep(EpdBus& bus) {
   if (_isScreenOn) {
     bus.cmd(CMD_DISPLAY_UPDATE_CTRL1);

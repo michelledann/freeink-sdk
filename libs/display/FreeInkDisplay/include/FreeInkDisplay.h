@@ -139,6 +139,8 @@ class FreeInkDisplay {
 
   // LUT control
   void setCustomLUT(bool enabled, const unsigned char* lutData = nullptr);
+  // The waveform only (105 bytes), keeping the panel's own voltages: see PanelDriver::setCustomWaveform.
+  void setCustomWaveform(bool enabled, const uint8_t* waveform = nullptr);
 
   // Power management
   void deepSleep();

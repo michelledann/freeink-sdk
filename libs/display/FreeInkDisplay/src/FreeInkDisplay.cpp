@@ -399,6 +399,10 @@ void FreeInkDisplay::setCustomLUT(bool enabled, const unsigned char* lutData) {
   if (_driver) _driver->setCustomLut(_bus, enabled, lutData);
 }
 
+void FreeInkDisplay::setCustomWaveform(bool enabled, const uint8_t* waveform) {
+  if (_driver) _driver->setCustomWaveform(_bus, enabled, waveform);
+}
+
 void FreeInkDisplay::deepSleep() {
   if (_driver) _driver->deepSleep(_bus);
 }
