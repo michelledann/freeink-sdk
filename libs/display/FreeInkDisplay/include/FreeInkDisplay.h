@@ -150,6 +150,9 @@ class FreeInkDisplay {
   // wait window. Forwards to the bus, which owns every driver's busy-polling.
   // See EpdBus::setBusyWaitHooks for firing semantics.
   void setBusyWaitHooks(void (*beginHook)(), void (*endHook)()) { _bus.setBusyWaitHooks(beginHook, endHook); }
+  // Called with the frame (panel-native, 1 bpp, 1 = white) just before every displayBuffer / displayBufferWithPrevious
+  // sends it to the panel -- e.g. a debug screenshot. nullptr: none.
+  void setFrameHook(void (*hook)(const uint8_t* fb, uint32_t len)) { _frameHook = hook; }
 
   // Optional slice hook replacing the BUSY poll delay once a wait has proven
   // long, so host firmware can sleep through the refresh instead of polling.
@@ -211,6 +214,7 @@ class FreeInkDisplay {
   // Set by setWarmWake() before _driver exists; applied to the driver in
   // begin() right after selectDriver() assigns it, before _driver->begin().
   bool _warmWakeHint = false;
+  void (*_frameHook)(const uint8_t* fb, uint32_t len) = nullptr;
   // Set by setPanelPowerHeld(); see there.
   bool _panelPowerHeldHint = false;
 

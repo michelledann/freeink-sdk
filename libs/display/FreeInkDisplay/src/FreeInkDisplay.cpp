@@ -290,6 +290,7 @@ bool FreeInkDisplay::hasSecondaryBuffer() const { return frameBufferActive != nu
 // ============================================================================
 
 void FreeInkDisplay::displayBuffer(RefreshMode mode, bool turnOffScreen) {
+  if (_frameHook) _frameHook(frameBuffer, bufferSize);
 #if defined(SSD1677_PROBE_DEBUG) && SSD1677_PROBE_DEBUG
   Serial.printf("[EPD] displayBuffer mode=%d off=%d\n", (int)mode, (int)turnOffScreen);
 #endif
@@ -302,6 +303,7 @@ void FreeInkDisplay::displayBuffer(RefreshMode mode, bool turnOffScreen) {
 }
 
 void FreeInkDisplay::displayBufferWithPrevious(const uint8_t* prev, RefreshMode mode, bool turnOffScreen) {
+  if (_frameHook) _frameHook(frameBuffer, bufferSize);
   _driver->display(_bus, frameBuffer, prev, toInternal(mode), turnOffScreen);
 }
 

@@ -38,7 +38,7 @@ class DisplayTarget final : public DrawTarget {
  public:
   // Logical font slots. ThemeTokens.fontSmall/Body/Title are just FontId values
   // the app assigns; they index these slots. All default to the bundled font.
-  static constexpr FontId FONT_SLOTS = 8;
+  static constexpr FontId FONT_SLOTS = 10;
 
   // Panel-native dimensions + explicit logical orientation.
   DisplayTarget(uint8_t* framebuffer, int16_t panelWidth, int16_t panelHeight, int16_t panelWidthBytes,
