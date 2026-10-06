@@ -70,6 +70,9 @@ public:
     //     a board with a gauge but no charger IC (e.g. X3) still reports it.
     bool isCharging() const;
 
+    // The I2C fuel gauge's current in mA (positive into the battery); false when there is no gauge or it did not answer.
+    bool readGaugeCurrentMa(int16_t& mA) const;
+
     // Percentage (0-100) from a millivolt value
     static uint16_t percentageFromMillivolts(uint16_t millivolts);
 

@@ -259,6 +259,20 @@ double BatteryMonitor::readVolts() const {
   return static_cast<double>(readMillivolts()) / 1000.0;
 }
 
+bool BatteryMonitor::readGaugeCurrentMa(int16_t& mA) const {
+#if FREEINK_BATTERY_I2C_GAUGE
+  if (BoardConfig::ACTIVE.batteryGauge.gaugeAddr != 0) {
+    uint16_t raw = 0;
+    if (readReg16(BoardConfig::ACTIVE.batteryGauge.gaugeAddr, BQ27220_CURRENT, raw)) {
+      mA = static_cast<int16_t>(raw);
+      return true;
+    }
+  }
+#endif
+  (void)mA;
+  return false;
+}
+
 bool BatteryMonitor::isCharging() const {
 #if FREEINK_BATTERY_I2C_GAUGE
   // Gauge boards: prefer a charger IC's status (BQ25896), else fall back to the
