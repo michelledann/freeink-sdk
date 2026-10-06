@@ -259,6 +259,15 @@ double BatteryMonitor::readVolts() const {
   return static_cast<double>(readMillivolts()) / 1000.0;
 }
 
+bool BatteryMonitor::readGaugeRegister(uint8_t reg, uint16_t& out) const {
+#if FREEINK_BATTERY_I2C_GAUGE
+  if (BoardConfig::ACTIVE.batteryGauge.gaugeAddr != 0) return readReg16(BoardConfig::ACTIVE.batteryGauge.gaugeAddr, reg, out);
+#endif
+  (void)reg;
+  (void)out;
+  return false;
+}
+
 bool BatteryMonitor::readGaugeCurrentMa(int16_t& mA) const {
 #if FREEINK_BATTERY_I2C_GAUGE
   if (BoardConfig::ACTIVE.batteryGauge.gaugeAddr != 0) {

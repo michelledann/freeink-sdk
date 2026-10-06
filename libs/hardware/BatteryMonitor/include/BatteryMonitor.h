@@ -72,6 +72,8 @@ public:
 
     // The I2C fuel gauge's current in mA (positive into the battery); false when there is no gauge or it did not answer.
     bool readGaugeCurrentMa(int16_t& mA) const;
+    // One 16-bit register of the I2C fuel gauge, raw (diagnostics: 0x06 temperature in 0.1 K, 0x08 voltage in mV).
+    bool readGaugeRegister(uint8_t reg, uint16_t& out) const;
 
     // Percentage (0-100) from a millivolt value
     static uint16_t percentageFromMillivolts(uint16_t millivolts);
